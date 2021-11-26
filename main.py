@@ -1,7 +1,7 @@
-from ChessBoard import ChessBoard
-from ChessBoardAuto import ChessBoardAuto
-from agent1 import Agent1
-from agent2 import Agent2
+from Boards.ChessBoard import ChessBoard
+from Boards.ChessBoardAuto import ChessBoardAuto
+from Agents.agent1 import Agent1
+from Agents.agent2 import Agent2
 
 
 def playGame(board):
@@ -39,13 +39,15 @@ def playAuto(board):
     AgentTwo = Agent2()
     moves = 0
     gameOver = False
-    while moves < 500 and not gameOver:
+    gameMoveLimit = 500
+    while moves < gameMoveLimit and not gameOver:
         moves = moves + 1
         if board.currPlayerMove == 0:
             moveList = board.getAllPossibleMoves()
             if moveList == -1 or len(moveList) == 0:
                 print("Good Game, Agent Two, black won")
                 board.printBoard()
+                board.blackWins = board.blackWins + 1
                 break
             else:
                 moveIndex = AgentOne.pickMove(moveList)
@@ -60,6 +62,7 @@ def playAuto(board):
             if moveList == -1 or len(moveList) == 0:
                 print("Good Game, Agent One, white won")
                 board.printBoard()
+                board.whiteWins = board.whiteWins + 1
                 break
             else:
                 moveIndex = AgentTwo.pickMove(moveList)
@@ -70,6 +73,15 @@ def playAuto(board):
                            movePieceToLoc[0], movePieceToLoc[1])
                 board.printBoard()
         gameOver = not board.checkBoardForKings()
+    if moves == gameMoveLimit:
+        board.gameTooLong()
+    board.resetBoard()
+    board.sessionStatistics()
+
+
+def playAutoNTimes(n, board):
+    for a in range(n):
+        playAuto(board)
 
 
 def main():
@@ -81,8 +93,9 @@ def main():
         print('Type a Number and Press Enter:')
         print('1: Make Move Manually')
         print('2: Make Move Automatically')
-        print('3: Get All Moves')
-        print('4: test')
+        print('3: PlayAuto N Times')
+        print('4: Get All Moves')
+        print('5: test')
         print('6: Quit')
 
         result = input()
@@ -91,8 +104,12 @@ def main():
         elif result == '2':
             playAuto(boardAuto)
         elif result == '3':
-            boardAuto.getAllPossibleMoves()
+            print("Pls input num of games played")
+            n = int(input())
+            playAutoNTimes(n, boardAuto)
         elif result == '4':
+            boardAuto.getAllPossibleMoves()
+        elif result == '5':
             boardAuto.printBoard()
             check = boardAuto.checkLocCheck(4, 2)
             print(check)

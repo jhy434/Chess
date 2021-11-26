@@ -17,9 +17,8 @@ class ChessBoardAuto:
                  [1, 1, 1, 1, 1, 1, 1, 1],
                  [2, 3, 4, 5, 6, 4, 3, 2]]
 
-    # todo fix kings killing each other
+    # todo fix not being able to move units in the way of checker path to king
 
-    kingLessBoard = []
     # 0 = white, 1 = black
     currPlayerMove = 0
     # white = pos
@@ -65,7 +64,75 @@ class ChessBoardAuto:
     whiteKingLoc = (0, 0)
     blackKingLoc = (0, 0)
 
+    whiteWins = 0
+    blackWins = 0
+    ties = 0
     # TODO HANDLE Check and checkmate
+
+    def gameTooLong(self):
+        print("Game reached move limit")
+        whitePieces = 0
+        blackPieces = 0
+        for i in range(8):
+            for j in range(8):
+                if self.currBoard[i][j] > 0:
+                    whitePieces = whitePieces + 1
+                if self.currBoard[i][j] < 0:
+                    blackPieces = blackPieces + 1
+        if whitePieces == blackPieces:
+            self.ties = self.ties + 1
+        elif whitePieces > blackPieces:
+            self.whiteWins = self.whiteWins + 1
+        else:
+            self.blackWins = self.blackWins + 1
+
+    def sessionStatistics(self):
+        print("Session Statistics\n")
+        print("Games Won:")
+        whitePercents = 0
+        blackPercents = 0
+        tiePercents = 0
+        if self.whiteWins > 0 or self.blackWins > 0 or self.ties > 0:
+            whitePercents = ((self.whiteWins) /
+                             (self.ties + self.whiteWins + self.blackWins)) * 100
+            blackPercents = ((self.blackWins) /
+                             (self.ties + self.whiteWins + self.blackWins)) * 100
+            tiePercents = ((self.ties) /
+                           (self.ties + self.whiteWins + self.blackWins)) * 100
+        print("White: ", self.whiteWins, " : ", whitePercents, "%")
+        print("Black: ", self.blackWins, " : ", blackPercents, "%")
+        print("\nTies: ", self.ties, " : ", tiePercents, "%")
+
+    def resetBoard(self):
+        print("Resetting Board")
+        self.boardStart = [[-2, -3, -4, -5, -6, -4, -3, -2],
+                           [-1, -1, -1, -1, -1, -1, -1, -1],
+                           [0, 0, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0],
+                           [0, 0, 0, 0, 0, 0, 0, 0],
+                           [1, 1, 1, 1, 1, 1, 1, 1],
+                           [2, 3, 4, 5, 6, 4, 3, 2]]
+
+        self.currBoard = [[-2, -3, -4, -5, -6, -4, -3, -2],
+                          [-1, -1, -1, -1, -1, -1, -1, -1],
+                          [0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0],
+                          [0, 0, 0, 0, 0, 0, 0, 0],
+                          [1, 1, 1, 1, 1, 1, 1, 1],
+                          [2, 3, 4, 5, 6, 4, 3, 2]]
+
+        self.currPlayerMove = 0
+
+        self.whiteKingSideCastle = 0
+        self.whiteQueenSideCastle = 0
+        self.blackKingSideCastle = 0
+        self.blackQueenSideCastle = 0
+        self.whiteCheck = 0
+        self.blackCheck = 0
+        self.whiteKingLoc = (0, 0)
+        self.blackKingLoc = (0, 0)
 
     def checkBoardForKings(self):
         kingCount = 0
@@ -271,11 +338,6 @@ class ChessBoardAuto:
                                 a = a.strip()
                                 if len(a) > 1:
                                     # debug
-                                    if a[0] == '-':
-                                        print(
-                                            "Piece: ", self.currBoard[i][j], " at ", (i, j))
-                                        print(self.getPossibleMoves(i, j))
-                                        print("A: ", a)
                                     moveRow = int(a[0])
                                     moveCol = int(a[2])
                                     element = (
@@ -288,8 +350,6 @@ class ChessBoardAuto:
                         if self.currBoard[i][j] == -6:
                             kingLoc = (i, j)
                         if len(self.getPossibleMoves(i, j)) > 0:
-                            # print(self.pieceDict[abs(self.currBoard[i][j])], " : ", i,
-                            #      ",", j, " moves:\n", self.getPossibleMoves(i, j))
                             for a in self.getPossibleMoves(i, j).split(";"):
                                 a = a.strip()
                                 if len(a) > 1:
@@ -301,17 +361,15 @@ class ChessBoardAuto:
 
         check, checkerLoc = self.checkLocCheck(kingLoc[0], kingLoc[1])
 
-        print("Check: ", check)
-        print("King Moves: ", self.getPossibleMoves(kingLoc[0], kingLoc[1]))
+        #print("Check: ", check)
+        #print("King Moves: ", self.getPossibleMoves(kingLoc[0], kingLoc[1]))
         checkMoveSet = []
         if check:
             for a in moveSet:
                 if a[1][1] == checkerLoc and a[0] != "king":
-                    print("Appending to checkMoveSet: ", a)
                     checkMoveSet.append(a)
 
             if len(self.getPossibleMoves(kingLoc[0], kingLoc[1])) > 0:
-                print("King Can Move")
                 for a in self.getPossibleMoves(kingLoc[0], kingLoc[1]).split(";"):
                     a = a.strip()
                     if len(a) > 1:
@@ -325,14 +383,8 @@ class ChessBoardAuto:
                 print("GG")
                 return -1
             else:
-                print("Len not 0")
-                for a in checkMoveSet:
-                    print(a)
                 return checkMoveSet
 
-        print("Exit")
-        for a in moveSet:
-            print(a)
         return moveSet
 
     def isEnemy(self, piece1, piece2):
